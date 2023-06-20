@@ -1,0 +1,13 @@
+
+GET http://127.0.0.1:5000/
+
+###
+
+#Post request
+
+POST http://127.0.0.1:5000/auth/login
+
+{
+    "name": "test",
+    "mail": 20
+}
