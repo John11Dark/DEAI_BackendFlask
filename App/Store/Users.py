@@ -3,7 +3,7 @@ import os
 import bcrypt
 from datetime import datetime, timedelta
 import jwt
-from ..Models import connect
+from ..Models.connect import connect
 
 
 # * --> User Class
@@ -11,7 +11,16 @@ class User:
     """Represents a user in the system."""
 
     def __init__(
-        self, user_id, name, email, password, phone_number, address, role, verified
+        self,
+        user_id: str,
+        name: str,
+        email: str,
+        password: str,
+        country_code: str,
+        phone_number: int,
+        address: dict,
+        role: str,
+        verified: bool,
     ):
         """
         Initialize a User object.
@@ -30,10 +39,11 @@ class User:
         self.name = name
         self.email = email
         self.password = password
+        self.country_code = country_code
         self.phone_number = phone_number
         self.address = address
         self.role = role
-        self.updated_at = datetime.utcnow()
+        self.created_at = datetime.utcnow()
         self.verified = verified
 
     # * --> Static Methods
@@ -48,7 +58,7 @@ class User:
         return connect("users")
 
     @staticmethod
-    def encrypt_password(password):
+    def encrypt_password(password: str):
         """
         Encrypt the password using bcrypt.
 
@@ -64,7 +74,7 @@ class User:
         return hashed_password.decode()
 
     @staticmethod
-    def decrypt_password(hashed_password, password):
+    def decrypt_password(hashed_password: str, password: str):
         """
         Check if the provided password matches the hashed password.
 
@@ -77,10 +87,10 @@ class User:
 
         """
 
-        return bcrypt.checkpw(password.encode(), hashed_password.encode())
+        return bcrypt.checkpw(password.encode(), hashed_password.encode())  # type: ignore
 
     @staticmethod
-    def generate_token(user):
+    def generate_token(user: dict):
         """
         Generate a JWT token for the user.
 
@@ -106,7 +116,16 @@ class User:
 
     # * --> Class Methods
     @classmethod
-    def create_user(cls, name, email, password, phone_number, address, role, verified):
+    def create_user(
+        cls,
+        mode,
+        username,
+        name,
+        email,
+        password,
+        phone_number,
+        role,
+    ):
         """
         Create a new user.
 
@@ -124,18 +143,37 @@ class User:
 
         """
         users_collection = cls.users()
+        hashed_password = cls.encrypt_password(password)
         user_data = {
+            "username": username,
             "name": name,
             "email": email,
-            "password": password,
+            "password": hashed_password,
             "phone_number": phone_number,
-            "address": address,
             "role": role,
-            "verified": verified,
             "created_at": datetime.utcnow(),
         }
-        result = users_collection.insert_one(user_data)
-        return result.inserted_id
+        existing_user = users_collection.find_one(
+            {
+                "$or": [
+                    {"email": email},
+                    {"phone_number": phone_number},
+                    {"username": username},
+                ]
+            }
+        )
+        if existing_user != None:
+            return {"value": None, "error": "user already exists"}
+        else:
+            try:
+                result = users_collection.insert_one(user_data)
+            except Exception as _:
+                return {"value": None, "error": "something went wrong"}
+        if result != None:
+            token = cls.generate_token(result)
+            return {"value": token, "error": False}
+        else:
+            return {"value": None, "error": "user already exists"}
 
     @classmethod
     def update_user(
@@ -159,7 +197,7 @@ class User:
 
         """
         users_collection = cls.users()
-        query = {"user_id": user_id}
+        query = {"_id": user_id}
         new_values = {
             "$set": {
                 "name": name,
@@ -172,7 +210,10 @@ class User:
                 "role": role,
             }
         }
-        result = users_collection.update_one(query, new_values)
+        try:
+            result = users_collection.update_one(query, new_values)
+        except Exception as _:
+            return 0
         return result.modified_count
 
     @classmethod
@@ -188,8 +229,11 @@ class User:
 
         """
         users_collection = cls.users()
-        query = {"user_id": user_id}
-        result = users_collection.delete_one(query)
+        query = {"_id": user_id}
+        try:
+            result = users_collection.delete_one(query)
+        except Exception as _:
+            return 0
         return result.deleted_count
 
     @classmethod
@@ -205,8 +249,11 @@ class User:
 
         """
         users_collection = cls.users()
-        query = {"user_id": user_id}
-        user = users_collection.find_one(query)
+        query = {"_id": user_id}
+        try:
+            user = users_collection.find_one(query)
+        except Exception as _:
+            return None
         return user
 
     @classmethod
@@ -219,7 +266,10 @@ class User:
 
         """
         users_collection = cls.users()
-        all_users = users_collection.find()
+        try:
+            all_users = users_collection.find()
+        except Exception as _:
+            return None
         return list(all_users)
 
     @classmethod
@@ -236,7 +286,10 @@ class User:
         """
         users_collection = cls.users()
         query = {"email": email}
-        user = users_collection.find_one(query)
+        try:
+            user = users_collection.find_one(query)
+        except Exception as _:
+            return None
         return user
 
     @classmethod
@@ -253,7 +306,10 @@ class User:
         """
         users_collection = cls.users()
         query = {"username": username}
-        user = users_collection.find_one(query)
+        try:
+            user = users_collection.find_one(query)
+        except Exception as _:
+            return None
         return user
 
     @classmethod
@@ -270,7 +326,10 @@ class User:
         """
         users_collection = cls.users()
         query = {"phone_number": phone_number}
-        user = users_collection.find_one(query)
+        try:
+            user = users_collection.find_one(query)
+        except Exception as _:
+            return None
         return user
 
     @classmethod

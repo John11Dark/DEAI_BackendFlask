@@ -1,13 +1,56 @@
+# Flask-RESTful-API
 
-GET http://127.0.0.1:5000/
+## GET USERS
+GET http://127.0.0.1:5000/users
 
-###
+### GET USER BY QUERY ["id", "username", "email", phone_number]
+GET http://127.0.0.1:5000/users/id=64754223ed9aa739f37300f5
 
-#Post request
+# invalid request
+GET http://127.0.0.1:5000/users/1
 
-POST http://127.0.0.1:5000/auth/login
+
+### GET USER BY USERNAME
+GET http://127.0.0.1:5000/users/username=admin
+
+### GET USER BY EMAIL
+GET http://127.0.0.1:5000/users/email=info@johnmuller.eu
+
+
+
+
+### DELETE USER by QUERY 
+DELETE http://127.0.0.1:5000/users/id=64754223ed9aa739f37300f5
+
+### Verify that the user has been deleted
+GET http://127.0.0.1:5000/users/id=64754223ed9aa739f37300f5
+
+
+#POST REQUESTS
+
+### Register 
+POST http://127.0.0.1:5000/auth/register
+Content-Type: application/json
 
 {
-    "name": "test",
-    "mail": 20
+    "register_credentials": {
+        "username": "admin3",
+        "name": "adimn",
+        "email": "admin3@deai.com",
+        "password": "admin",
+        "phone_number": "79000001",
+        "role": "admin"
+    }
 }
+
+### Login 
+POST http://127.0.0.1:5000/auth/login
+Content-Type: application/json
+
+{
+    "login_credentials": {
+        "email": "admin",   
+        "password": "admin"
+    } 
+}
+
