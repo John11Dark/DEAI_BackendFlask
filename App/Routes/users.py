@@ -1,17 +1,10 @@
 from flask import jsonify, request, Blueprint
 from ..Store.Users import User
+from ..Store.Helpers import JSONEncoder
 
 users = Blueprint("users", __name__)
 
-import json
 from bson import ObjectId
-
-
-class JSONEncoder(json.JSONEncoder):
-    def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        return json.JSONEncoder.default(self, o)
 
 
 @users.route("", methods=["POST", "GET"])

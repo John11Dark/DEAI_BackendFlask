@@ -20,10 +20,10 @@ GET http://127.0.0.1:5000/users/email=info@johnmuller.eu
 
 
 ### DELETE USER by QUERY 
-DELETE http://127.0.0.1:5000/users/id=64754223ed9aa739f37300f5
+DELETE http://127.0.0.1:5000/users/id=6475431b142e79578265f617
 
 ### Verify that the user has been deleted
-GET http://127.0.0.1:5000/users/id=64754223ed9aa739f37300f5
+GET http://127.0.0.1:5000/users/id=6475431b142e79578265f617
 
 
 #POST REQUESTS
@@ -34,11 +34,11 @@ Content-Type: application/json
 
 {
     "register_credentials": {
-        "username": "admin3",
-        "name": "adimn",
-        "email": "admin3@deai.com",
+        "username": "admin5",
+        "name": "adimn5",
+        "email": "admin5@deai.com",
         "password": "admin",
-        "phone_number": "79000001",
+        "phone_number": "79000005",
         "role": "admin"
     }
 }
@@ -49,7 +49,7 @@ Content-Type: application/json
 
 {
     "login_credentials": {
-        "email": "admin",   
+        "email": "admin5@deai.com",   
         "password": "admin"
     } 
 }

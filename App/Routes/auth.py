@@ -9,11 +9,16 @@ auth = Blueprint("auth", __name__)
 
 @auth.route("/login", methods=["POST"])
 def login():
-    print(request.get_json())
     login_credentials = request.get_json()["login_credentials"]
     token = User.login_user(login_credentials)
     if token != None:
-        return jsonify(token)
+        if type(token) == str:
+            return jsonify(token)
+        else:
+            return (
+                jsonify({"message": "invalid credentials"}),
+                401,
+            )
     return jsonify({"message": "Login failed"}), 401
 
 
@@ -21,20 +26,18 @@ def login():
 def register():
     userInfo = request.get_json()["register_credentials"]
 
-    token = User.create_user("register", **userInfo)
-    if token["value"] != None and token["error"] != False:
-        return jsonify(token["value"]), 201
-    return jsonify({"message": "Registration failed", "error": token}), 401
+    token = User.register_user(**userInfo)
+    if token != None and type(token) == str:
+        return jsonify(token), 201
+    return jsonify({"header": "Registration failed", "data": token}), 400
 
 
 @auth.route("/logout", methods=["POST"])
-def logout(req):
-    res = logoutUser(req)
+def logout():
+    # data = request.get_json()["logout_credentials"]
+    data = {"token": "request.headers"}  # ! need to implement logout
+    res = User.logout_user(**data)
     if res != None:
         return jsonify({"message": "user logged out successfully"})
     else:
         return jsonify({"message": "something went wrong could not log out user"})
-
-
-def logoutUser(req):
-    return True

@@ -2,8 +2,9 @@
 import os
 import bcrypt
 from datetime import datetime, timedelta
+from bson import ObjectId
 import jwt
-from ..Models.connect import connect
+from .Helpers import connect
 
 
 # * --> User Class
@@ -103,22 +104,117 @@ class User:
         """
         try:
             SECRET_KEY = os.getenv("SECRET_KEY")
-            expiration_time = datetime.utcnow() + timedelta(days=7)  # 7 days expiration
+            expiration_time = datetime.utcnow() + timedelta(days=7)
+            # ! * --> 7 days expiration
             payload = {
-                "user": user,
-                "expiration": expiration_time.isoformat(),
+                "id": str(user["_id"]),
+                "name": user["name"],
+                "username": user["username"],
+                "email": user["email"],
+                "role": user["role"],
+                "date_joined": str(user["created_at"]),
+                "exp": expiration_time,
+                "iat": datetime.utcnow(),
             }
-            token = jwt.encode(payload, SECRET_KEY, algorithm="HS256")
+            token = jwt.encode(
+                payload,
+                SECRET_KEY,
+                algorithm="HS256",
+            )
+
             return token
         except Exception as e:
-            print(e)
             return None
+
+    @staticmethod
+    def decode_token(token: str):
+        """
+        Decode the JWT token.
+
+        Args:
+            token (str): The JWT token to decode.
+
+        Returns:
+            dict: The decoded token if successful, None otherwise.
+
+        """
+        try:
+            SECRET_KEY = os.getenv("SECRET_KEY")
+            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            return decoded_token
+        except Exception as e:
+            return None
+
+    @staticmethod
+    def verify_token(token: str):
+        """
+        Verify the JWT token.
+
+        Args:
+            token (str): The JWT token to verify.
+
+        Returns:
+            bool: True if the token is valid, False otherwise.
+
+        """
+        try:
+            SECRET_KEY = os.getenv("SECRET_KEY")
+            decoded_token = jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+            return True
+        except Exception as e:
+            return False
+
+    @staticmethod
+    def verify_password(req_password: str, db_password: str):
+        """
+        Verify the password.
+
+        Args:
+            req_password (str): The password provided in the request.
+            db_password (str): The password stored in the database.
+
+        Returns:
+            bool: True if the passwords match, False otherwise.
+
+        """
+        return bcrypt.checkpw(req_password.encode(), db_password.encode())
+
+    @staticmethod
+    def verify_admin(self, headers, id):
+        """
+        Verify if a user is an admin.
+
+        Args:
+            headers (dict): The request headers containing the authorization information.
+            id (str): The ID of the user.
+
+        Returns:
+            bool: True if the user is an admin, False otherwise.
+
+        """
+        return True
+
+    @classmethod
+    def login_user(cls, data):
+        user = cls.get_user_by_email(data["email"])
+        if user != None:
+            if cls.verify_password(data["password"], user["password"]):
+                token = cls.generate_token(user)
+                return token
+            else:
+                return {"error": "invalid credentials"}
+        else:
+            return {"error": "invalid credentials"}
+
+    @classmethod
+    def logout_user(cls, data):
+        # ! need to implement
+        return True
 
     # * --> Class Methods
     @classmethod
     def create_user(
-        cls,
-        mode,
+        self,
         username,
         name,
         email,
@@ -142,8 +238,8 @@ class User:
             str: The inserted user's ID.
 
         """
-        users_collection = cls.users()
-        hashed_password = cls.encrypt_password(password)
+        users_collection = self.users()
+        hashed_password = self.encrypt_password(password)
         user_data = {
             "username": username,
             "name": name,
@@ -162,22 +258,27 @@ class User:
                 ]
             }
         )
-        if existing_user != None:
-            return {"value": None, "error": "user already exists"}
-        else:
+        if (
+            existing_user == None
+            or existing_user == {}
+            or existing_user == []
+            or existing_user == "null"
+            or existing_user == ""
+        ):
             try:
                 result = users_collection.insert_one(user_data)
+                if result != None:
+                    return result.inserted_id
+                else:
+                    return {"error": "unable to create user"}
             except Exception as _:
-                return {"value": None, "error": "something went wrong"}
-        if result != None:
-            token = cls.generate_token(result)
-            return {"value": token, "error": False}
+                return {"error": "something went wrong"}
         else:
-            return {"value": None, "error": "user already exists"}
+            return {"error": "user already exists"}
 
     @classmethod
     def update_user(
-        cls, user_id, name, email, verified, password, phone_number, address, role
+        self, user_id, name, email, verified, password, phone_number, address, role
     ):
         """
         Update an existing user.
@@ -196,7 +297,7 @@ class User:
             int: The number of modified documents (should be 1).
 
         """
-        users_collection = cls.users()
+        users_collection = self.users()
         query = {"_id": user_id}
         new_values = {
             "$set": {
@@ -217,7 +318,7 @@ class User:
         return result.modified_count
 
     @classmethod
-    def delete_user(cls, user_id):
+    def delete_user(self, user_id):
         """
         Delete a user.
 
@@ -228,7 +329,7 @@ class User:
             int: The number of deleted documents (should be 1).
 
         """
-        users_collection = cls.users()
+        users_collection = self.users()
         query = {"_id": user_id}
         try:
             result = users_collection.delete_one(query)
@@ -237,7 +338,7 @@ class User:
         return result.deleted_count
 
     @classmethod
-    def get_user_by_id(cls, user_id):
+    def get_user_by_id(self, user_id):
         """
         Retrieve a user by their ID.
 
@@ -248,7 +349,7 @@ class User:
             dict: The user document.
 
         """
-        users_collection = cls.users()
+        users_collection = self.users()
         query = {"_id": user_id}
         try:
             user = users_collection.find_one(query)
@@ -257,7 +358,7 @@ class User:
         return user
 
     @classmethod
-    def get_all_users(cls):
+    def get_all_users(self):
         """
         Retrieve all users.
 
@@ -265,7 +366,7 @@ class User:
             list: A list of all user documents.
 
         """
-        users_collection = cls.users()
+        users_collection = self.users()
         try:
             all_users = users_collection.find()
         except Exception as _:
@@ -273,7 +374,7 @@ class User:
         return list(all_users)
 
     @classmethod
-    def get_user_by_email(cls, email):
+    def get_user_by_email(self, email):
         """
         Retrieve a user by their email address.
 
@@ -284,7 +385,7 @@ class User:
             dict: The user document.
 
         """
-        users_collection = cls.users()
+        users_collection = self.users()
         query = {"email": email}
         try:
             user = users_collection.find_one(query)
@@ -293,7 +394,7 @@ class User:
         return user
 
     @classmethod
-    def get_user_by_username(cls, username):
+    def get_user_by_username(self, username):
         """
         Retrieve a user by their username.
 
@@ -304,7 +405,7 @@ class User:
             dict: The user document.
 
         """
-        users_collection = cls.users()
+        users_collection = self.users()
         query = {"username": username}
         try:
             user = users_collection.find_one(query)
@@ -313,7 +414,7 @@ class User:
         return user
 
     @classmethod
-    def get_user_by_phone_number(cls, phone_number):
+    def get_user_by_phone_number(self, phone_number):
         """
         Retrieve a user by their phone number.
 
@@ -324,7 +425,7 @@ class User:
             dict: The user document.
 
         """
-        users_collection = cls.users()
+        users_collection = self.users()
         query = {"phone_number": phone_number}
         try:
             user = users_collection.find_one(query)
@@ -333,16 +434,14 @@ class User:
         return user
 
     @classmethod
-    def verify_admin(cls, headers, id):
-        """
-        Verify if a user is an admin.
-
-        Args:
-            headers (dict): The request headers containing the authorization information.
-            id (str): The ID of the user.
-
-        Returns:
-            bool: True if the user is an admin, False otherwise.
-
-        """
-        return True
+    def register_user(self, **data):
+        user_id = self.create_user(**data)
+        if user_id != None and type(user_id) != dict:
+            user = self.get_user_by_id(ObjectId(user_id))
+            token = self.generate_token(user)
+            if token != None and type(token) != dict:
+                return token
+            else:
+                return {"message": "unable to generate token"}
+        else:
+            return user_id
