@@ -27,7 +27,7 @@ class Chatbot:
         self.type = type
         self.question = question
         self.new_knowledge_base_data = new_knowledge_base_data
-        self.knowledge_base_data = knowledge_base_data
+        self.knowledge_base_data = self.load_knowledge_base()
         self.business = self.get_business(business_id)
 
     @staticmethod
@@ -44,7 +44,7 @@ class Chatbot:
 
     def load_knowledge_base(self) -> None:
         with open(self.knowledge_base_path, "r") as file:
-            self.knowledge_base_data = json.load(file)
+            return json.load(file)
 
     def analyze_text(self) -> str or None:
         if self.question == "bye":
@@ -54,15 +54,18 @@ class Chatbot:
             print("Bot: Please wait while a support agent contact you!.")
             exit()
         else:
-            matches: list = get_close_matches(
-                self.question, self.knowledge_base_data.keys(), n=1, cutoff=0.6
+            matches: list(str) = get_close_matches(
+                self.question,
+                self.knowledge_base_data["questions"],
+                n=1,
+                cutoff=self.similarity_threshold,
             )
-        return matches[0] if matches else None
+            return matches[0] if matches else None
 
     def generate_response(self) -> str:
         match: list(str) = self.analyze_text()
         if match == None:
-            return "Smeorry, I don't understand that."
+            return "Sorry, I don't understand that."
 
 
 if __name__ == "__main__":

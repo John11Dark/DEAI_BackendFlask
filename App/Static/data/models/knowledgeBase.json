@@ -1,3 +1,84 @@
 {
-  "questions": []
+  "questions": [
+    {
+      "question": "What are your opening hours?",
+      "answer": "We are open from 5pm till midnight Monday to Thursday, and from midday till late on weekends and public holidays!"
+    },
+    {
+      "question": "Do you offer vegetarian or vegan options?",
+      "answer": "Yes, we have a variety of vegetarian and vegan dishes available on our menu."
+    },
+    {
+      "question": "Is there a dress code at your establishment?",
+      "answer": "We have a casual dress code. Please come dressed comfortably."
+    },
+    {
+      "question": "Can I make a reservation?",
+      "answer": "Yes, we accept reservations. You can make a reservation by calling us or using our online reservation system."
+    },
+    {
+      "question": "Do you have outdoor seating?",
+      "answer": "Yes, we have outdoor seating available for our customers."
+    },
+    {
+      "question": "Is there parking available?",
+      "answer": "We have dedicated parking spaces for our customers. Parking is available on a first-come, first-served basis."
+    },
+    {
+      "question": "What types of cuisine do you offer?",
+      "answer": "We offer a diverse range of cuisines, including Mediterranean, Middle Eastern, and fusion dishes."
+    },
+    {
+      "question": "Can I bring my own alcohol?",
+      "answer": "We have a full-service bar, so outside alcohol is not permitted."
+    },
+    {
+      "question": "Do you offer delivery or takeout services?",
+      "answer": "Yes, we provide both delivery and takeout services. You can place your order through our website or by calling us."
+    },
+    {
+      "question": "Are you pet-friendly?",
+      "answer": "Unfortunately, we do not allow pets inside the establishment. However, we have outdoor seating where pets are permitted."
+    },
+    {
+      "question": "Are there any age restrictions?",
+      "answer": "We are a family-friendly establishment. However, for certain events or during specific hours, age restrictions may apply. Please check with our staff for more information."
+    },
+    {
+      "question": "Can I host private events at your venue?",
+      "answer": "Yes, we have event spaces available for private functions. Please contact our events team for more details and availability."
+    },
+    {
+      "question": "Are you wheelchair accessible?",
+      "answer": "Yes, we have wheelchair-accessible entrances, ramps, and accessible seating areas."
+    },
+    {
+      "question": "Do you have live entertainment or music?",
+      "answer": "Yes, we regularly host live entertainment and music events. Check our schedule or social media for upcoming performances."
+    },
+    {
+      "question": "What payment methods do you accept?",
+      "answer": "We accept cash, credit cards, and mobile payment options such as Apple Pay and Google Pay."
+    },
+    {
+      "question": "Can I bring my own hookah?",
+      "answer": "We provide hookah service at our establishment. Outside hookahs are not permitted."
+    },
+    {
+      "question": "Do you have a happy hour?",
+      "answer": "Yes, we have happy hour specials. Our happy hour timings and offers may vary, so please check our website or contact us for more information."
+    },
+    {
+      "question": "Do you accommodate dietary restrictions or food allergies?",
+      "answer": "We strive to accommodate dietary restrictions and food allergies. Please inform our staff about your specific requirements, and they will assist you accordingly."
+    },
+    {
+      "question": "Can I book a table for a large group?",
+      "answer": "Yes, we can accommodate large groups. It's recommended to make a reservation in advance, especially for larger parties."
+    },
+    {
+      "question": "Are you affiliated with any loyalty or rewards programs?",
+      "answer": "Yes, we have a loyalty program that offers exclusive benefits and rewards to our regular customers. Ask our staff for more details on how to join."
+    }
+  ]
 }
