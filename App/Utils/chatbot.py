@@ -1,12 +1,8 @@
-""" """
-
 import os
 from typing import Final
 import json
 from difflib import get_close_matches
 import paths
-
-from typing import TypeAlias
 
 
 class Chatbot:
