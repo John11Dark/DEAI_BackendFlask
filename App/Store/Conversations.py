@@ -1,15 +1,15 @@
+from typing import Final
 from bson import ObjectId
 from datetime import datetime
 from .Helpers import connect
-from .Messages import Message
 from .Users import User
-from ..Utils.SentimentAnalyzer import SentimentAnalyzer
 
 
 class Conversation:
+    BOT_ID: Final = "60f1b5b3e3b3f3b3f3b3f3b3"
+
     def __init__(self, id):
         self.id = id
-        self.sentimentAnalyzer = SentimentAnalyzer()
 
     # * --> Static Methods
     @staticmethod
@@ -18,7 +18,7 @@ class Conversation:
         Get the conversations collection from the database.
 
         Returns:
-            _list:   The conversations collection. (pymongo.collection.Collection: parsed into a list)
+            _pymongo.collection.Collection:   The conversations collection Object address in memory.
             _None_:  If an error occurred.
         """
         try:
@@ -26,10 +26,22 @@ class Conversation:
         except Exception as e:
             return None
 
-    def get_conversation(self, id: str | ObjectId) -> dict | None:
+    @classmethod
+    def get_conversation(cls, id: str | ObjectId) -> dict | None:
+        """
+        _summary_: Gets a conversation from the database
+
+        Args:
+            id (str | ObjectId): The id of the conversation to be retrieved
+
+        Returns:
+            _dict_: The conversation if it was found
+            _None_: If the conversation was not found
+        """
+
         if type(id) == str:
             id = ObjectId(id)
-        conversations = self.conversations()
+        conversations = cls.conversations()
         conversation = conversations.find_one({"_id": ObjectId(id)})
         if conversation is not None and conversation["_id"] == id:
             return conversation
@@ -41,6 +53,18 @@ class Conversation:
         conversation_id: str | ObjectId,
         sender: User,
     ) -> str | ObjectId | None:
+        """
+        _summary_: Creates a new conversation
+
+        Args:
+            conversation_id (str | ObjectId): The id of the conversation to be created
+            sender (User): The user who created the conversation
+
+        Returns:
+            _str | ObjectId_: The id of the created conversation
+            _None_: If an error occurred
+        """
+
         if type(conversation_id) == str:
             conversation_id = ObjectId(conversation_id)
 
@@ -54,12 +78,13 @@ class Conversation:
                 "hasUnreadMessages": False,
                 "hasNewTitle": False,
                 "messages": [],
-                "sentimentType": "null",
-                "lastMessage": "null",
-                "createdAt": datetime.utcnow(),
-                "updatedAt": datetime.utcnow(),
-                "user": sender,
+                "sentimentType": None,
+                "lastMessage": None,
+                "createdAt": str(datetime.utcnow()),
+                "updatedAt": str(datetime.utcnow()),
                 "avatar": "/assets/images/logo-icon.png",
+                "sender": sender,
+                "receiver": cls.BOT_ID,
             }
             try:
                 response = conversations_collection.insert_one(new_conversation)
@@ -71,12 +96,19 @@ class Conversation:
 
     @classmethod
     def get_messages_collection(cls):
+        """
+        _summary_: Gets the messages collection from the database
+
+        Returns:
+            _list_: The messages collection
+            _None_: If an error occurred
+        """
         db = connect("conversations")
         messages = db.find_one({"_id": ObjectId(cls.id)})
         return messages
 
     @classmethod
-    def add_message(cls, message: dict) -> bool | None:
+    def append_message(cls, message: dict) -> bool | None:
         """
         _summary_: Adds a message to the database
 
@@ -89,14 +121,60 @@ class Conversation:
         """
         conversation = cls.get_conversation(message["conversation_id"])
         try:
-            response = conversation.insert_one(message)
-            if response.acknowledged:
-                return True
+            if conversation is not None:
+                response = conversation.insert_one(message)
+                if response.acknowledged:
+                    return True
+            return None
         except Exception as e:
             return None
 
     @classmethod
-    def get_conversation(cls, conversation_id: str | ObjectId) -> dict | None:
-        db = connect("conversations")
-        conversation = db.find_one({"_id": ObjectId(conversation_id)})
-        return conversation
+    def delete_conversation(cls, id: str | ObjectId) -> bool | None:
+        """
+        _summary_: Deletes a conversation from the database
+
+        Args:
+            id (str | ObjectId): The id of the conversation to be deleted
+
+        Returns:
+            _bool_: True if the conversation was deleted successfully, False otherwise
+            _None_: None if an error occurred
+        """
+
+        if type(id) == str:
+            id = ObjectId(id)
+        conversations = cls.conversations()
+        try:
+            response = conversations.delete_one({"_id": ObjectId(id)})
+            if response.acknowledged and response.deleted_count > 0:
+                return True
+            return None
+        except Exception as e:
+            return None
+
+    @classmethod
+    def update_conversation(cls, id: str | ObjectId, data: dict) -> bool | None:
+        """
+        _summary_: Updates a conversation in the database
+
+        Args:
+            id (str | ObjectId): The id of the conversation to be updated
+            data (dict): The data to be updated
+        Returns:
+            _bool_: True if the conversation was updated successfully, False otherwise
+            _None_: None if an error occurred
+        """
+        if type(id) == str:
+            id = ObjectId(id)
+        conversations = cls.conversations()
+        try:
+            data["updatedAt"] = str(datetime.utcnow())
+            response = conversations.find_one_and_update(
+                {"_id": ObjectId(id)}, {"$set": data}
+            )
+            if response != None:
+                return True
+            return None
+        except Exception as e:
+            return None

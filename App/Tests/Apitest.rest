@@ -65,8 +65,7 @@ POST http://127.0.0.1:5000/conversations
 Content-Type: application/json
 
 {
-    
-    "conversation_id" : "649e19e845620564c6eb5669",
+    "conversation_id" : "649e405837d164be8ed5dbef",
     "sender": "6475431b142e79578265f617",
     "receiver": "6475431b142e79578265f617",
     "message": "Hello"
@@ -75,16 +74,28 @@ Content-Type: application/json
 
 ### Get messages by conversation id
 
-GET http://127.0.0.1:5000/conversations/649e1c92d19172a166d1fe82
+GET http://127.0.0.1:5000/conversations/649e405837d164be8ed5dbef
 
 ### Delete Conversation by id
-DELETE http://127.0.0.1:5000/conversations/649e1c92d19172a166d1fe82
+DELETE http://127.0.0.1:5000/conversations/649e349e34219a7c128d077d
 
 ### Update Title
 
-PUT http://127.0.0.1:5000/conversations/649e1c92d19172a166d1fe82
+PUT http://127.0.0.1:5000/conversations/649e405837d164be8ed5dbef
 Content-Type: application/json
 
 {
-    "title": "This is a new title"
+    "title": "This is a new title",
+    "messages" : [
+        {
+            "sender": "6475431b142e79578265f617",
+            "receiver": "649e405837d164be8ed5dbef",
+            "message": "Hello"
+        },
+        {
+            "sender": "649e405837d164be8ed5dbef",
+            "receiver": "6475431b142e79578265f617",
+            "message": "hey there!"
+        }
+    ]
 }
