@@ -46,10 +46,8 @@ class Conversation:
 
         conversation = cls.get_conversation(conversation_id)
         if conversation is not None:
-            print("Conversation already exists")
-            return conversation
+            return str(conversation["_id"])
         else:
-            print("Creating new conversation")
             conversations_collection = cls.conversations()
             new_conversation = {
                 "title": "New Chat",
@@ -66,7 +64,7 @@ class Conversation:
             try:
                 response = conversations_collection.insert_one(new_conversation)
                 if response.acknowledged:
-                    return response.inserted_id
+                    return str(response.inserted_id)
                 return None
             except Exception as e:
                 return None

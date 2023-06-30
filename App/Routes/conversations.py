@@ -25,18 +25,18 @@ def users_route():
         )
 
 
-@conversations.route("/<query>", methods=["PUT", "DELETE", "GET"])
-def user(query):
-    user = get_user_by_query(query)
-    if user == None or user == "null" or user == "" or user == 0:
+@conversations.route("/<id>", methods=["PUT", "DELETE", "GET"])
+def conversation(id):
+    conversation = get_conversation(id)
+    if conversation == None:
         return jsonify({"error": "User not found"}), 404
     else:
         if request.method == "GET":
-            return jsonify(JSONEncoder().encode(user))
+            return jsonify({"data": conversation})
         elif request.method == "PUT":
-            return update_user(user["_id"], request.get_json())
+            return {"data": "Conversation updated successfully"}
         elif request.method == "DELETE":
-            response = delete_user(user["_id"])
+            response = {"message": "Conversation deleted successfully"}
             return jsonify({"data": response})
 
 
@@ -56,11 +56,19 @@ def create_conversation(data: dict) -> dict:
         conversation_id=id,
         sender=user,
     )
+    return conversation
+
+
+def get_conversation(id: str) -> dict | None:
+    conversation = Conversation.get_conversation(id)
     try:
-        JSONEncoder().encode(conversation)
-    except:
+        conversation = JSONEncoder().encode(conversation)
+        if conversation is not None:
+            return conversation
+    except Exception as _:
         conversation["_id"] = str(conversation["_id"])
         conversation["updatedAt"] = str(conversation["updatedAt"])
         conversation["createdAt"] = str(conversation["createdAt"])
         conversation = JSONEncoder().encode(conversation)
-    return conversation
+        return conversation
+    return None
