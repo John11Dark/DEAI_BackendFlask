@@ -54,3 +54,21 @@ Content-Type: application/json
     } 
 }
 
+#### Messages 
+
+###
+GET http://127.0.0.1:5000/conversations
+
+###
+
+POST http://127.0.0.1:5000/conversations
+Content-Type: application/json
+
+{
+    
+    "conversation_id" : "649e19e828620564c6eb5669",
+    "sender": "6475431b142e79578265f617",
+    "receiver": "6475431b142e79578265f617",
+    "message": "Hello"
+    
+}

@@ -13,7 +13,7 @@ class User:
 
     def __init__(
         self,
-        user_id: str,
+        id: str,
         name: str,
         email: str,
         password: str,
@@ -36,7 +36,7 @@ class User:
             role (str): The role of the user (e.g., admin, regular user).
             verified (bool): Indicates if the user is verified.
         """
-        self.user_id = user_id
+        self.id = id
         self.name = name
         self.email = email
         self.password = password
@@ -338,7 +338,7 @@ class User:
         return result.deleted_count
 
     @classmethod
-    def get_user_by_id(self, user_id):
+    def get_user_by_id(self, user_id: ObjectId):
         """
         Retrieve a user by their ID.
 
@@ -350,12 +350,12 @@ class User:
 
         """
         users_collection = self.users()
-        query = {"_id": user_id}
+        query = {"_id": ObjectId(user_id)}
         try:
             user = users_collection.find_one(query)
+            return user
         except Exception as _:
             return None
-        return user
 
     @classmethod
     def get_all_users(self):
@@ -445,3 +445,21 @@ class User:
                 return {"message": "unable to generate token"}
         else:
             return user_id
+
+    def to_dict(cls, id) -> dict:
+        """
+        TODO: Fix this method.
+        Return a dictionary representation of the user.
+
+        Returns:
+            dict: A dictionary representation of the user.
+        """
+        User = cls.get_user_by_id(id)
+        return {
+            "id": str(User["_id"]),
+            "name": User["name"],
+            "email": User["email"],
+            "avatar": "https://www.gravatar.com/avatar",
+            "role": User["role"],
+            "verified": User["verified"],
+        }

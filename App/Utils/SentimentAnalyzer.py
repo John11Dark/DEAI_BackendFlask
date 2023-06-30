@@ -1,7 +1,5 @@
 import nltk
 
-nltk.download()
-
 
 class SentimentAnalyzer:
     def analyze(self, data):
