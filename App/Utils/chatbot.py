@@ -1,57 +1,75 @@
-# Tutorial 6 – ChatBot
+""" """
 
-# In this exercise we will we creating a ChatBot that
-# potential/future tourists can ask questions to, about Malta.
-# For this purpose, the FAQ section of VisitMalta, as seen here:
-# https://www.visitmalta.com/en/info/malta-faq/
-# have been copied onto 2 text files, one with questions and the other with answers.
-# These  will be provided to you.
-
+import os
+from typing import Final
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
+import json
+from difflib import get_close_matches
+from . import paths
+from .SentimentAnalyzer import SentimentAnalyzer
 
-# 1.	Create an array/list called questions and another called answers.
-
-answers = []
-questions = []
-
-# 2. Read the contents of the text files into the arrays, such that each question and answer are found in the same index in the 2 lists.
-
-with open("faqs_questions.txt", "r") as f:
-    for line in f:
-        questions.append(line)
-
-with open("faqs_answers.txt", "r") as f:
-    for line in f:
-        answers.append(line)
+from typing import TypeAlias
 
 
-# 3.	Use a CountVectorizer (set to eliminate stopwords) and use it to create the count vectors for each question in the questions list.
+# Define custom types using TypeAlias
+Review = TypeAlias(str, bound="Review")
+Response = TypeAlias(str, bound="Response")
 
 
-vectorizer = CountVectorizer(stop_words="english")
-X = vectorizer.fit_transform(questions)
+class Chatbot:
+    GLOBAL_PATH: Final = os.path.join(paths.MODELS_DATA, "/knowledgeBase.json")
 
-# 4.	In a loop, ask the user to input any question, or else type ‘bye’ to exit
-# 5.	If the user enters a question, find its vector, using the same bag of words (same vectorizer) as used when processing the questions list.
+    def __init__(
+        self,
+        knowledge_base_path: str = GLOBAL_PATH,
+        similarity_threshold: float = 0.3,
+        type: Review or Response = None,
+        question: str = None,
+        new_knowledge_base_data: dict = {},
+        knowledge_base_data: dict = {},
+        analyzer: SentimentAnalyzer = SentimentAnalyzer(),
+    ) -> None:
+        self.knowledge_base_path = knowledge_base_path
+        self.similarity_threshold = similarity_threshold
+        self.type = type
+        self.question = question
+        self.new_knowledge_base_data = new_knowledge_base_data
+        self.knowledge_base_data = knowledge_base_data
+        self.analyzer = analyzer
 
-# 6.	If its vector contains only zeros, output “Sorry, I don’t get that! Try again”
+    def save_knowledge_base(self) -> None:
+        with open(self.knowledge_base_path, "w") as file:
+            json.dump(self.new_knowledge_base_data, file, indent=4)
 
-# 7.	If vector is non-zero, use the cosine similarity to calculate the closest question in the questions list (most similar to the user input).
+    def load_knowledge_base(self) -> None:
+        with open(self.knowledge_base_path, "r") as file:
+            self.knowledge_base_data = json.load(file)
 
-# 8.	When you find it, display its answer.
+    def analyze_text(self) -> str or None:
+        if self.question == "bye":
+            print("Bot: Bye! Take care.")
+            exit()
+        matches: list = get_close_matches(
+            self.question, self.knowledge_base_data.keys(), n=1, cutoff=0.6
+        )
+        return matches[0] if matches else None
 
-# 9.	The process should then repeat, and only stop when the user types “bye”.
+    def generate_response(self) -> str:
+        response: str = ""
+        self.load_knowledge_base()
+        if self.analyze_text() in self.knowledge_base_data["questions"]:
+            response = self.knowledge_base_data[self.analyze_text()]
+        else:
+            response = "Sorry, I don't understand your question."
+        return response
 
-while True:
-    user_input = input("Ask a question: ")
-    if user_input == "bye":
-        print("Bye, Have a nice day!")
-        break
-    user_input_vector = vectorizer.transform([user_input])
-    if user_input_vector.nnz == 0:
-        print("Sorry, I don’t get that! Try again")
-    else:
-        similarity = cosine_similarity(X, user_input_vector)
-        index = similarity.argmax()
-        print(answers[index])
+
+if __name__ == "__main__":
+    while True:
+        print(
+            "Bot: Hello, I am a chatbot. I will answer your questions about Chatbots. If you want to exit, type bye!"
+        )
+        question: str = input("You: ")
+        chatbot: Chatbot = Chatbot(question=question)
+        print(f"Bot: {chatbot.generate_response()}")
